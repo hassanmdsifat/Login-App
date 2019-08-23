@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+{% extends "LoginApp/base.html" %}
+<html>
+<head>
+    {% block title_block %}
+    <title>Add Customer</title>
+    {% endblock %}
+</head>
+<body>
+<div class="container">
+
+    {% block body_block %}
+     <div class="jumbotron m-1">
+         <form action="{% url 'LoginApp:addcustomer' %}" method="POST" >
+         {% csrf_token %}
+         <div class="form-group row">
+             <label for="{{form.firstname.id_for_label}}" class="col-sm-2 col-form-label">{{form.firstname.label}}</label>
+             <div class="col-sm-5">
+             <input type="text" class="form-control" name="{{form.firstname.html_name}}" id="{{form.firstname.id_for_label}}" required=true>
+             </div>
+         </div>
+             <div class="form-group row">
+              <label for="{{form.lastname.id_for_label}}" class="col-sm-2 col-form-label">{{form.lastname.label}}</label>
+             <div class="col-sm-5">
+             <input type="text" class="form-control" name="{{form.lastname.html_name}}" id="{{form.lastname.id_for_label}}" required=true>
+             </div>
+         </div>
+             <div class="form-group row">
+              <label for="{{form.email.id_for_label}}" class="col-sm-2 col-form-label">{{form.email.label}}</label>
+             <div class="col-sm-5">
+             <input type="email" class="form-control" name="{{form.email.html_name}}" id="{{form.email.id_for_label}}" required=true>
+             </div>
+         </div>
+             <div class="form-group row">
+              <label for="{{form.phone.id_for_label}}" class="col-sm-2 col-form-label">{{form.phone.label}}</label>
+             <div class="col-sm-5">
+             <input type="text" class="form-control" name="{{form.phone.html_name}}" id="{{form.phone.id_for_label}}" required=true>
+             </div>
+         </div>
+             <div class="form-group row">
+              <label for="{{form.dob.id_for_label}}" class="col-sm-2 col-form-label">{{form.dob.label}}</label>
+             <div class="col-sm-5">
+             <input type="date" class="form-control" name="{{form.dob.html_name}}" id="{{form.dob.id_for_label}}" required=true>
+             </div>
+         </div>
+             <div class="form-group row">
+              <label for="{{form.address.id_for_label}}" class="col-sm-2 col-form-label">{{form.address.label}}</label>
+             <div class="col-sm-5">
+             <input type="text" class="form-control" name="{{form.address.html_name}}" id="{{form.address.id_for_label}}" required=true>
+             </div>
+         </div>
+         <input type="submit" class="btn btn-success" value="Add Customer">
+     </form>
+     </div>
+    {% endblock %}
+</div>
+</body>
+</html>

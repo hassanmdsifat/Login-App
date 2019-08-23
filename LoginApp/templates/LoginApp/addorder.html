@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+{% extends "LoginApp/base.html" %}
+<html>
+<head>
+    {% block title_block %}
+    <title>Add Order</title>
+    {% endblock %}
+</head>
+<body>
+
+<div class="container">
+    {%block body_block %}
+    <div class="jumbotron m-1">
+       <form action="{% url 'LoginApp:addorder' %}" method="POST" >
+         {% csrf_token %}
+         <div class="form-group row">
+             <label for="details" class="col-sm-2 col-form-label">Details</label>
+             <div class="col-sm-5">
+             <input type="text" class="form-control" name="details" id="details" required=true>
+             </div>
+         </div>
+           {% if customerlist %}
+             <div class="form-group row">
+              <label for="choosecustomer" class="col-sm-2 col-form-label">Choose Customer</label>
+                 <div class="col-sm-5">
+                 <select class="form-control" id="choosecustomer" name="cid">
+                     {% for customer in customerlist %}
+                     <option value="{{customer.id}}">{{customer.firstname}} {{customer.lastname}}</option>
+                     {% endfor %}
+                 </select>
+                 </div>
+            </div>
+            <input type="submit" class="btn btn-success" value="Add Order">
+           {% else %}
+           <p>No Customer Availabel</p>
+           {% endif %}
+       </form>
+    </div>
+    {% endblock %}
+</div>
+</body>
+</html>

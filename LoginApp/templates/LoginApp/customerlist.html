@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+{% extends "LoginApp/base.html" %}
+<html>
+<head>
+    {% block title_block %}
+    <title>Customer List</title>
+    {% endblock %}
+</head>
+<body>
+<div class="container">
+    {% block body_block %}
+    <div class="jumbotron m-1">
+        <h3 align="center">Customer Information</h3>
+        <div class="table-responsive">
+        <div class="table table-hover">
+            {% if customerlist %}
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">First Name</th>
+                      <th scope="col">Last Name</th>
+                      <th scope="col">Phone</th>
+                      <th scope="col">Email</th>
+                      <th scope="col">DOB</th>
+                      <th scope="col">Address</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+            {% for customer in customerlist %}
+                  <tbody>
+                    <tr>
+                      <th scope="row">{{customer.id}}</th>
+                      <td>{{customer.firstname}}</td>
+                      <td>{{customer.lastname}}</td>
+                      <td>{{customer.phonenumber}}</td>
+                      <td>{{customer.email}}</td>
+                      <td>{{customer.dob|date:'d/m/Y'}}</td>
+                      <td>{{customer.address}}</td>
+                        <td><button type="submit" class="btn btn-info"><a href="{% url 'LoginApp:editcustomer' customer.id%}" style="text-decoration:none;color:white">Edit</a></button></td>
+                        <td><button type="submit" class="btn btn-danger"><a href="{% url 'LoginApp:deletecustomer' customer.id %}" style="text-decoration:none;color:white">Delete</a></button></td>
+                    </tr>
+            {% endfor %}
+        </table>
+        </div>
+        </div>
+         {% else %}
+        <p>No Customer Exist!!!</p>
+         {% endif %}
+    </div>
+    {% endblock %}
+</div>
+</body>
+</html>

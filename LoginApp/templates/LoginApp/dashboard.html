@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+{% extends 'LoginApp/base.html' %}
+<html>
+<head>
+    {% block title_block %}
+    <title>Dashboard</title>
+    {% endblock %}
+</head>
+<body>
+    <div class="container">
+    {% block body_block %}
+        <div class="jumbotron m-1">
+            <h1>Welcome {{user.username}}</h1>
+        </div>
+    {% endblock %}
+    </div>
+</body>
+</html>

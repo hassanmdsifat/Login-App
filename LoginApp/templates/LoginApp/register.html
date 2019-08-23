@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+{% extends "LoginApp/base.html" %}
+<html>
+<head>
+    {% block title_block %}
+    <title>Register</title>
+    {% endblock %}
+</head>
+<body>
+{% block body_block %}
+    <div class="container m-3 md-4" align="center">
+     <div class="jumbotron">
+     <form action="{% url 'LoginApp:register' %}" method="POST">
+         {% csrf_token %}
+          <div class="form-group row">
+             <label for="{{form.FirstName.id_for_label}}" class="col-sm-2 col-form-label">{{form.FirstName.label}}</label>
+             <div class="col-sm-8">
+             <input type="text" class="form-control" name="{{form.FirstName.html_name}}" id="{{form.FirstName.id_for_label}}" required=true>
+             </div>
+         </div>
+          <div class="form-group row">
+             <label for="{{form.LastName.id_for_label}}" class="col-sm-2 col-form-label">{{form.LastName.label}}</label>
+             <div class="col-sm-8">
+             <input type="text" class="form-control" name="{{form.LastName.html_name}}" id="{{form.LastName.id_for_label}}" required=true>
+             </div>
+         </div>
+         <div class="form-group row">
+             <label for="{{form.Email.id_for_label}}" class="col-sm-2 col-form-label">{{form.Email.label}}</label>
+             <div class="col-sm-8">
+             <input type="email" class="form-control" name="{{form.Email.html_name}}" id="{{form.Email.id_for_label}}" required=true>
+             </div>
+         </div>
+         <div class="form-group row">
+             <label for="{{form.Password1.id_for_label}}" class="col-sm-2 col-form-label">{{form.Password1.label}}</label>
+             <div class="col-sm-8">
+             <input type="password" class="form-control" name={{form.Password1.html_name}} required=true>
+             </div>
+         </div>
+           <div class="form-group row">
+             <label for="{{form.Password2.id_for_label}}"class="col-sm-2 col-form-label">{{form.Password2.label}}</label>
+             <div class="col-sm-8">
+             <input type="password" class="form-control" name={{form.Password2.html_name}} required=true>
+             </div>
+         </div>
+         <input type="submit" class="btn btn-success" value="Register">
+         {% for error in errormessage %}
+           <div class="alert alert-danger" role="alert">
+                {{error}}
+            </div>
+         {% endfor %}
+     </form>
+     </div>
+ </div>
+{% endblock %}
+</body>
+</html>

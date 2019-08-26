@@ -1,17 +1,24 @@
+from django import forms
+from .models import Customer
 
-def is_number(value):
-    for num in value:
-        if((num>='a' and num<='z') or(num>='A' and num<='Z')):
-            return False
-        else:
+def is_num(value):
+    for val in value:
+        if val.isnumeric():
             return True
-def validatePhone(value):
-    if len(value)<11 or len(value)>13:
-        return False
-    if not is_number(value):
-        return False
     else:
-        return True
+        return False
+
+def validatePhone(value):
+    if len(value) < 11 or len(value) > 13:
+        raise forms.ValidationError("Invalid Phone Number")
+    if not value.isnumeric():
+        raise forms.ValidationError("Invalid Phone Number!!!")
 
 
+def validateEmail(value):
+    if len(Customer.objects.filter(email=value)):
+        raise forms.ValidationError("Email Already Exist!!!")
 
+def validateName(value):
+    if is_num(value):
+        raise forms.ValidationError("Name can not contain numbers!!!")

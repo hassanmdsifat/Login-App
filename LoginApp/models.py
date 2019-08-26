@@ -13,5 +13,5 @@ class Customer(models.Model):
 
 class Order(models.Model):
     placementdate=models.DateField("Placement Date")
-    customer=models.ForeignKey(Customer,on_delete=models.CASCADE)
+    customer=models.ForeignKey(Customer,on_delete=models.CASCADE, related_name='orders')
     details=models.CharField(max_length=500)

@@ -1,6 +1,8 @@
 from django.urls import path,include
-from . import  views
+from . import views
+from rest_framework import routers
 app_name="LoginApp"
+router=routers.DefaultRouter()
 urlpatterns = [
     path('',views.index,name="index"),
     path('login/',views.login,name="login"),
@@ -14,4 +16,7 @@ urlpatterns = [
     path('addorder/',views.addorder,name="addorder"),
     path('showorderlist/',views.allorder,name="showorderlist"),
     path('deleteorder/<int:o_id>/',views.deleteorder,name='deleteorder'),
+    path('api/customerapi/',views.customerAPI.as_view()),
+    path('api/orderapi/',views.orderAPI.as_view())
+    #path('getapi/',views.get_api_list),
 ]

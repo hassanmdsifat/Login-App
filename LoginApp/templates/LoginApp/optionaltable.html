@@ -1,0 +1,15 @@
+    <tbody>
+            {% for customer in customerlist %}
+                    <tr>
+                      <td>{{customer.id}}</td>
+                      <td>{{customer.firstname}}</td>
+                      <td>{{customer.lastname}}</td>
+                      <td>{{customer.phonenumber}}</td>
+                      <td>{{customer.email}}</td>
+                      <td>{{customer.dob|date:'d/m/Y'}}</td>
+                      <td>{{customer.address}}</td>
+                        <td><button type="submit" class="btn btn-info"><a href="{% url 'LoginApp:editcustomer' customer.id%}" style="text-decoration:none;color:white">Edit</a></button></td>
+                        <td><button type="submit" class="btn btn-danger"><a href="{% url 'LoginApp:deletecustomer' customer.id %}" style="text-decoration:none;color:white">Delete</a></button></td>
+                    </tr>
+            {% endfor %}
+    </tbody>

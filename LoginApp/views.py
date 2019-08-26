@@ -1,15 +1,20 @@
 from django.shortcuts import render,get_object_or_404
-from .forms import LoginForm,RegisterUser,addCustomer
+from rest_framework.response import Response
+from .forms import LoginForm,RegisterUser,addCustomer,editCustomer
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
-from django.http import HttpResponse,HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.contrib import messages
-from .logic import validatePhone
 from .models import Customer,Order
 from django.utils import timezone
+from rest_framework import viewsets, generics
+from .serialize import customerSerializer,orderSerializer
+from rest_framework.views import APIView
+from datetime import datetime
+from django.db.models import Q
 
 def index(request):
     if request.user.is_authenticated:
@@ -91,9 +96,7 @@ def logout(request):
 def addcustomer(request):
     if request.user.is_authenticated:
         customerform=addCustomer()
-        context = {
-            'form': customerform
-        }
+
         if request.method=="POST":
             customerform=addCustomer(request.POST)
             if customerform.is_valid():
@@ -108,19 +111,13 @@ def addcustomer(request):
                 lastname = lastname.lstrip()
                 email=email.lstrip()
                 address=address.lstrip()
-                if not validatePhone(phone):
-                    messages.add_message(request, messages.ERROR, 'Not a valid Number')
-                    cnt=1
-                if len(Customer.objects.filter(email=email)):
-                    messages.add_message(request,messages.ERROR,"User Already Exist!!!")
-                    cnt=1
-                if cnt==0:
-                    q= Customer(firstname=firstname,lastname=lastname,email=email,phonenumber=phone,dob=dob,address=address)
-                    q.save()
-                    return HttpResponseRedirect(reverse("LoginApp:showcustomerlist"))
-                else:
-                    return render(request, "LoginApp/addcustomer.html", context)
-
+                q= Customer(firstname=firstname,lastname=lastname,email=email,phonenumber=phone,dob=dob,address=address)
+                q.save()
+                messages.add_message(request,messages.SUCCESS,"Added Successfully!!")
+                return HttpResponseRedirect(reverse("LoginApp:showcustomerlist"))
+        context = {
+            'form': customerform
+         }
         return render(request,"LoginApp/addcustomer.html",context)
     else:
         return render(request,"LoginApp/index.html",{})
@@ -156,13 +153,13 @@ def editcustomer(request,c_id):
         return render(request,"LoginApp/index.html",{})
     else:
         customer= get_object_or_404(Customer, pk=c_id)
-        form=addCustomer()
+        form=editCustomer()
         context = {
             'form': form,
             'customer': customer,
         }
         if request.method=="POST":
-            newform=addCustomer(request.POST)
+            newform=editCustomer(request.POST)
             if newform.is_valid():
                 firstname=newform.cleaned_data["firstname"]
                 firstname=firstname.lstrip()
@@ -178,19 +175,13 @@ def editcustomer(request,c_id):
                     messages.add_message(request, messages.ERROR, "Nothing Changed!!!")
                     return render(request,"LoginApp/editcustomer.html",context)
                 else:
-                    cnt=0
-                    if validatePhone(phone):
-                        customer.firstname=firstname
-                        customer.lastname=lastname
-                        customer.phonenumber=phone
-                        customer.address=address
-                        customer.save()
-                        messages.add_message(request, messages.ERROR, "Edited Successfully!!!")
-                        return HttpResponseRedirect(reverse("LoginApp:showcustomerlist"))
-
-                    else:
-                        messages.add_message(request, messages.ERROR, "Phone Number not valid!!!")
-                        return render(request, "LoginApp/editcustomer.html", context)
+                    customer.firstname=firstname
+                    customer.lastname=lastname
+                    customer.phonenumber=phone
+                    customer.address=address
+                    customer.save()
+                    messages.add_message(request, messages.ERROR, "Edited Successfully!!!")
+                    return HttpResponseRedirect(reverse("LoginApp:showcustomerlist"))
         return render(request,"LoginApp/editcustomer.html",context)
 
 
@@ -233,3 +224,94 @@ def deleteorder(request,o_id):
         return HttpResponseRedirect(reverse("LoginApp:showorderlist"))
     else:
         return render(request,"LoginApp/index.html",{})
+
+
+'''class customerAPI(viewsets.ModelViewSet):
+    queryset = Customer.objects.all()
+    serializer_class =customerSerializer
+
+'''
+class customerAPI(APIView):
+
+    def get(self, request):
+        # Note the use of `get_queryset()` instead of `self.queryset`
+        customers = Customer.objects.all()
+        api_data={
+            'draw':1,
+
+        }
+        all_data=[]
+        for customer in customers:
+            cus=[
+                customer.pk,
+                customer.firstname,
+                customer.lastname,
+                customer.phonenumber,
+                customer.email,
+                customer.dob,
+                customer.address,
+            ]
+            all_data.append(cus)
+        api_data['data']=all_data
+        return Response(api_data)
+
+
+class orderAPI(APIView):
+
+    def get(self, request):
+        #Get all column index
+
+        all_column = ['pk', 'placementdate', 'details', 'customer__pk','customer__firstname','customer__lastname','customer__email','customer__phonenumber']
+
+        #Start index and range pelam
+        st = int(request.query_params['start'])
+        en = (int)(request.query_params['length'])
+        en=st+en
+        #print(st,en)
+
+        #kon column e pressed ase seta ber korlam
+        colindex = int(request.query_params['order[0][column]'])
+
+        #kon order e sorted hobe seta ber korlam
+        if request.query_params['order[0][dir]']=='asc':
+            my_ind=all_column[colindex]
+        else:
+            my_ind="-"+all_column[colindex]
+        #print(my_ind)
+
+        #pura table ta nilam
+        orders = Order.objects.all()
+        #always jei length show korte bolbe totgula
+        ordersnew=orders.order_by(my_ind)[st:en]
+        api_data = {
+            "recordsTotal": len(Order.objects.all()),
+            "recordsFiltered": len(orders)
+        }
+        if request.query_params:
+            ###search er jonne
+            if request.query_params['search[value]']:
+                ###search value thakle asbe
+                val=request.query_params['search[value]']
+
+                #select * like ='%' query korlam
+
+                ordersnew=Order.objects.filter(customer__firstname__contains=val)|Order.objects.filter(details__contains=val)|Order.objects.filter(customer__lastname__contains=val)|Order.objects.filter(customer__email__contains=val)
+                ordersnew=ordersnew.order_by(my_ind)
+                api_data['recordsFiltered'] = len(ordersnew)
+                ordersnew=ordersnew[st:en]
+
+        all_data=[]
+        for ord in ordersnew:
+            cus=[
+                ord.pk,
+                ord.placementdate,
+                ord.details,
+                ord.customer.pk,
+                ord.customer.firstname,
+                ord.customer.lastname,
+                ord.customer.email,
+                ord.customer.phonenumber,
+            ]
+            all_data.append(cus)
+        api_data['data']=all_data
+        return Response(api_data)

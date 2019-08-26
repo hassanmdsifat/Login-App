@@ -1,14 +1,9 @@
 <!DOCTYPE html>
 {% extends "LoginApp/base.html" %}
-<html>
-<head>
     {% block title_block %}
     <title>Add Order</title>
     {% endblock %}
-</head>
-<body>
 
-<div class="container">
     {%block body_block %}
     <div class="jumbotron m-1">
        <form action="{% url 'LoginApp:addorder' %}" method="POST" >
@@ -37,6 +32,3 @@
        </form>
     </div>
     {% endblock %}
-</div>
-</body>
-</html>

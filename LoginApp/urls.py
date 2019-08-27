@@ -17,6 +17,7 @@ urlpatterns = [
     path('showorderlist/',views.allorder,name="showorderlist"),
     path('deleteorder/<int:o_id>/',views.deleteorder,name='deleteorder'),
     path('api/customerapi/',views.customerAPI.as_view()),
-    path('api/orderapi/',views.orderAPI.as_view())
+    path('api/orderapi/',views.orderAPI.as_view()),
+    path('api/customerapi/<int:pk>/',views.customerdetailAPI.as_view())
     #path('getapi/',views.get_api_list),
 ]

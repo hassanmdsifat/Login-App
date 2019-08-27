@@ -11,10 +11,11 @@ from django.contrib import messages
 from .models import Customer,Order
 from django.utils import timezone
 from rest_framework import viewsets, generics
-from .serialize import customerSerializer,orderSerializer
+from .serialize import customerSerializer,AddCustomerserializer
 from rest_framework.views import APIView
 from datetime import datetime
 from django.db.models import Q
+from rest_framework import status
 
 def index(request):
     if request.user.is_authenticated:
@@ -225,81 +226,100 @@ def deleteorder(request,o_id):
     else:
         return render(request,"LoginApp/index.html",{})
 
-
-'''class customerAPI(viewsets.ModelViewSet):
-    queryset = Customer.objects.all()
-    serializer_class =customerSerializer
-
-'''
 class customerAPI(APIView):
 
     def get(self, request):
-        # Note the use of `get_queryset()` instead of `self.queryset`
+        #Get all column index
+        all_column = ['pk', 'firstname', 'lastname', 'phonenumber', 'email', 'dob', 'address']
         customers = Customer.objects.all()
-        api_data={
-            'draw':1,
+        st = int(request.query_params.get('start', 0))
+        en = int(request.query_params.get('length', len(customers)))
+        en = st + en
+        colindex = int(request.query_params.get('order[0][column]', 0))
+        s_order = request.query_params.get('order[0][dir]', 'asc')
+        do_search = request.query_params.get('search[value]', '')
+        #pura table ta nilam
+        #customers= Customer.objects.all()
+        #always jei length show korte bolbe totgula
 
+        customernew=customers
+        api_data = {
+            "recordsTotal": len(Customer.objects.all()),
+            "recordsFiltered": len(customers)
         }
+        # kon order e sorted hobe seta ber korlam
+        if s_order == 'asc':
+            my_ind = all_column[colindex]
+        else:
+            my_ind = "-" + all_column[colindex]
+        # pura table ta nilam
+        customers = Customer.objects.all()
+        # always jei length show korte bolbe totgula
+        customernew = customers.order_by(my_ind)[st:en]
+        if do_search:
+            ###search value thakle asbe
+            val = do_search
+            # select * like ='%' query korlam
+            #customernew = Customer.objects.filter(firstname__contains=val) | Customer.objects.filter(
+                ##lastname__contains=val) | Customer.objects.filter(email__contains=val)
+            customernew=Customer.objects.filter(Q(firstname__contains=val)|Q(lastname__contains=val)|Q(email__contains=val)).order_by(my_ind)
+            #customernew = customernew.order_by(my_ind)
+            api_data['recordsFiltered'] = len(customernew)
+            customernew = customernew[st:en]
+
         all_data=[]
-        for customer in customers:
+        for ord in customernew:
             cus=[
-                customer.pk,
-                customer.firstname,
-                customer.lastname,
-                customer.phonenumber,
-                customer.email,
-                customer.dob,
-                customer.address,
+                ord.pk,
+                ord.firstname,
+                ord.lastname,
+                ord.phonenumber,
+                ord.email,
+                ord.dob,
+                ord.address,
             ]
+
             all_data.append(cus)
         api_data['data']=all_data
         return Response(api_data)
+
+    def post(self,request):
+        serializer = AddCustomerserializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            messages.add_message(request, messages.SUCCESS, "Added Successfully!!")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class orderAPI(APIView):
 
     def get(self, request):
-        #Get all column index
-
         all_column = ['pk', 'placementdate', 'details', 'customer__pk','customer__firstname','customer__lastname','customer__email','customer__phonenumber']
-
-        #Start index and range pelam
-        st = int(request.query_params['start'])
-        en = (int)(request.query_params['length'])
-        en=st+en
-        #print(st,en)
-
-        #kon column e pressed ase seta ber korlam
-        colindex = int(request.query_params['order[0][column]'])
-
-        #kon order e sorted hobe seta ber korlam
-        if request.query_params['order[0][dir]']=='asc':
-            my_ind=all_column[colindex]
-        else:
-            my_ind="-"+all_column[colindex]
-        #print(my_ind)
-
-        #pura table ta nilam
+        st = int(request.query_params.get('start', 0))
+        en = int(request.query_params.get('length',10))
+        en = st + en
+        colindex = int(request.query_params.get('order[0][column]',0))
+        s_order=request.query_params.get('order[0][dir]','asc')
+        do_search=request.query_params.get('search[value]','')
         orders = Order.objects.all()
-        #always jei length show korte bolbe totgula
-        ordersnew=orders.order_by(my_ind)[st:en]
+        print(s_order,do_search)
+        ordersnew=orders
         api_data = {
             "recordsTotal": len(Order.objects.all()),
             "recordsFiltered": len(orders)
         }
-        if request.query_params:
-            ###search er jonne
-            if request.query_params['search[value]']:
-                ###search value thakle asbe
-                val=request.query_params['search[value]']
-
-                #select * like ='%' query korlam
-
-                ordersnew=Order.objects.filter(customer__firstname__contains=val)|Order.objects.filter(details__contains=val)|Order.objects.filter(customer__lastname__contains=val)|Order.objects.filter(customer__email__contains=val)
-                ordersnew=ordersnew.order_by(my_ind)
-                api_data['recordsFiltered'] = len(ordersnew)
-                ordersnew=ordersnew[st:en]
-
+        if s_order=='asc':
+            my_ind = all_column[colindex]
+        else:
+            my_ind = "-" + all_column[colindex]
+        orders = Order.objects.all()
+        ordersnew = orders.order_by(my_ind)[st:en]
+        if do_search:
+            val = do_search
+            ordersnew=Order.objects.filter(Q(details__contains=val)|Q(customer__firstname__contains=val)|Q(customer__lastname__contains=val)|Q(customer__email__contains=val)).order_by(my_ind)
+            api_data['recordsFiltered'] = len(ordersnew)
+            ordersnew = ordersnew[st:en]
         all_data=[]
         for ord in ordersnew:
             cus=[
@@ -315,3 +335,34 @@ class orderAPI(APIView):
             all_data.append(cus)
         api_data['data']=all_data
         return Response(api_data)
+
+
+class customerdetailAPI(APIView):
+    def get_object(self,pk):
+        return get_object_or_404(Customer,pk=pk)
+
+    def get(self,request,pk,format=None):
+        customer=self.get_object(pk)
+        serializer=customerSerializer(customer)
+        return Response(serializer.data)
+
+    def put(self,request,pk,format=None):
+        customer=self.get_object(pk)
+        serialzer=customerSerializer(customer,data=request.data)
+        if serialzer.is_valid():
+            print("Request")
+            serialzer.save()
+            messages.add_message(request, messages.SUCCESS, "Edited Successfully!!")
+            AllCustomer = Customer.objects.all()
+            context = {
+                'customerlist': AllCustomer,
+            }
+            #return HttpResponseRedirect("/showcustomerlist/")
+            #return HttpResponseRedirect(reverse("LoginApp:showorderlist"))
+            return Response(serialzer.data, status=status.HTTP_200_OK)
+        return Response(serialzer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+

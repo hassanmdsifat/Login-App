@@ -17,6 +17,7 @@
                       <th>Email</th>
                       <th>DOB</th>
                       <th>Address</th>
+                      <th></th>
                         <!--<th></th>
                         <th></th> -->
                     </tr>
@@ -49,7 +50,32 @@
         <script>
             $(document).ready(function() {
              $('#customertable').DataTable( {
+                    "processing": true,
+                    "serverSide": true,
                     "ajax":"http://127.0.0.1:8000/api/customerapi/?format=json",
+                    "columnDefs": [
+                            { "type": "html-num", "targets": 0 },
+                         {
+                                "render": function ( data, type, row ) {
+
+                                   let htmltext=`<button type="submit" class="btn btn-info mr-2"><a href="/edit/`+row[0]+`" style="text-decoration:none;color:white">Edit</a></button><button type="submit" class="btn btn-danger"><a href="/delete/`+row[0]+`" style="text-decoration:none;color:white">Delete</a></button>`;
+                                   return htmltext;
+                                },
+                                "targets": 7
+                         },
+                         {
+                          "render": function ( data, type, row ) {
+                                     let date=new Date(data);
+                                     let options={year:'numeric',month:'short',day:'numeric'};
+                                     return date.toLocaleDateString("en-US",options);
+                                },
+                                "targets": 5
+                         },
+
+                    ],
+                   stateSave:true,
+                   "scrollX": true
+
                 } );
             } );
         </script>

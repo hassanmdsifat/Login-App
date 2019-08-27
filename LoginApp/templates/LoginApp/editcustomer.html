@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 {% extends "LoginApp/base.html" %}
     {% block title_block %}
-    <title>Add Customer</title>
+    <title>Edit Customer</title>
     {% endblock %}
 
     {% block body_block %}
      <div class="jumbotron m-1">
-         <form action="{% url 'LoginApp:editcustomer' customer.id %}" method="POST" >
+         <!--action="{% url 'LoginApp:editcustomer' customer.id %}" -->
+          <div class="alert alert-danger" role="alert" id="error_list" style="display:none">
+
+          </div>
+         <form >
          {% csrf_token %}
+
+              <input type="hidden" id="custId" name="custId" value="{{customer.pk}}">
          <div class="form-group row">
              <label for="{{form.firstname.id_for_label}}" class="col-sm-2 col-form-label">{{form.firstname.label}}</label>
              <div class="col-sm-5">
@@ -46,7 +52,61 @@
              </div>
          </div>
 
-         <input type="submit" class="btn btn-success" value="Save" style="margin-left:30%">
+             <button type="submit" class="btn btn-success" id="button" value="Save" style="margin-left:30%">Save</button>
      </form>
      </div>
     {% endblock %}
+
+  {% block script_block %}
+    <script>
+        let URL="/api/customerapi/"
+        $("#button").click(function(e){
+        e.preventDefault();
+        let pk=$("#custId").val();
+        let token = '{{csrf_token}}';
+        $.ajax(
+          {
+             "headers":{ "X-CSRFToken": token },
+             "url": URL +pk+ "/",
+             "data": {     "firstname": $("#id_firstname").val(),
+                           "lastname"    : $("#id_lastname").val(),
+                           "phonenumber": $("#id_phone").val(),
+                           "address": $("#id_address").val(),
+                      },
+             "type"    : "put",
+             "success" : update_success,
+             "error"   : update_error
+          }
+      ); // ajax()
+        });
+    function update_success(data, textStatus, rstatus)
+    {
+        if (rstatus.status==200){
+            alert("Edited Successfully");
+            window.location.assign("http://127.0.0.1:8000/showcustomerlist/");
+         }
+
+    }
+
+    function update_error(data)
+    {
+        console.log(data);
+        if(data.status==400){
+           let error_list=data.responseJSON;
+           let html="<ul>";
+           for (var key in error_list) {
+            if (error_list.hasOwnProperty(key)) {
+                    error_list[key].map((err)=>{
+                       html+="<li>"+err+"</li>";
+                    })
+               }
+           }
+             html+="</ul>"
+           console.log(html);
+           let err=document.getElementById("error_list");
+           err.style.display="block";
+           err.innerHTML=html;
+        }
+    }
+    </script>
+  {% endblock %}
